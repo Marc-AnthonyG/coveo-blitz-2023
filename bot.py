@@ -16,33 +16,36 @@ class Bot:
         """
         actions = []
 
-        buy = self.look_to_buy(game_message)
-        if buy != False:
-            # actions.append(buy)
-            pass
+        if(game_message.ticksUntilPayout != 59):
+            buy = self.look_to_buy(game_message)
+            if buy != False:
+                actions.append(buy)
+                pass
 
         # all possible positions to place a tower
         possibilePositions = self._get_possible_positions(game_message)
 
         # best position for each tower
-        bestPostionForEachTower = self._get_positions(game_message,
-                                                      possibilePositions)
+        bestPostionForEachTower = self._get_positions(game_message, possibilePositions)
         
-        if(game_message.teamInfos[game_message.teamId].money > 600):
-            actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER]))
-        elif  (game_message.teamInfos[game_message.teamId].money > 280):
-             actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER]))
-        elif  (game_message.teamInfos[game_message.teamId].money > 200):
-             actions.append(BuildAction(TowerType.SPEAR_SHOOTER, bestPostionForEachTower[TowerType.SPEAR_SHOOTER]))
-
-
-
-        if (game_message.teamInfos[game_message.teamId].money > 2000):
-            positionReplaceArcherToBomber = self.replace_archer_to_bomber(
-                game_message)
-            actions.append(SellAction(positionReplaceArcherToBomber))
-            actions.append(BuildAction(TowerType.BOMB_SHOOTER,
-                           positionReplaceArcherToBomber))
+        if(bestPostionForEachTower):
+            if(game_message.teamInfos[game_message.teamId].money > 600):
+                actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER]))
+            elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 15):
+                actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER]))
+            elif  (game_message.teamInfos[game_message.teamId].money > 200 and game_message.round < 10):
+                actions.append(BuildAction(TowerType.SPEAR_SHOOTER, bestPostionForEachTower[TowerType.SPEAR_SHOOTER]))
+        elif (game_message.teamInfos[game_message.teamId].money > 1000):
+            positionReplaceArcherToBomber = self.replace_archer_to_bomber(game_message)
+            if(positionReplaceArcherToBomber):
+                actions.append(SellAction(positionReplaceArcherToBomber))
+                actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceArcherToBomber))
+            else:
+                positionReplaceSpikerToBomber = self.replace_spiker_to_bomber(game_message)
+                if(positionReplaceSpikerToBomber):
+                    actions.append(SellAction(positionReplaceSpikerToBomber))
+                    actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceSpikerToBomber))
+        
 
         return actions
 
@@ -138,16 +141,15 @@ class Bot:
         return all_paths
 
     def look_to_buy(self, game_message: GameMessage):
-        if len(game_message.playAreas[game_message.teamId].towers)*5 > game_message.round:
-            itemToSell = sorted(
-                game_message.shop.reinforcements.keys(), key=lambda x: x.upper())
+        if len(game_message.playAreas[game_message.teamId].towers) > game_message.round * 3:
+            itemToSell = sorted(game_message.shop.reinforcements.keys(), key=lambda x: x.upper())
 
             for item in itemToSell:
                 if game_message.teamInfos[game_message.teamId].money >= game_message.shop.reinforcements[item].price*8:
                     other_team_ids = [
                         team for team in game_message.teams if team != game_message.teamId]
                     return SendReinforcementsAction(item, other_team_ids[0])
-        return None
+        return False
 
     def _is_in(self, liste, position):
         for pos in liste:
@@ -169,20 +171,22 @@ class Bot:
             if tower.type == TowerType.SPEAR_SHOOTER:
                 return tower.position
         return None
+    
+    def replace_spiker_to_bomber(self, game_message):
+        for tower in game_message.playAreas[game_message.teamId].towers:
+            if tower.type == TowerType.SPIKE_SHOOTER:
+                return tower.position
+        return None
+    
+
 
     def _get_max_of(self, all_touched_of_type, positions):
-        print(len(positions) == len(all_touched_of_type))
         best_position = positions[0]
         max_touched = 0
 
-        for i in range(len(positions)):  # toutes les positions ou on peut placer de quoi
-            # si ca touche beaucoup de case
-            print(all_touched_of_type[i])
+        for i in range(len(positions)): 
             if all_touched_of_type[i] > max_touched:
-                print("banana")
                 best_position = positions[i]
                 max_touched = all_touched_of_type[i]
-
-        print(max_touched)
 
         return best_position
