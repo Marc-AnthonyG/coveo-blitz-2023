@@ -16,7 +16,7 @@ class Bot:
         actions = list()
 
         actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(
-            game_message.map.paths.tiles[6].x+1, game_message.map.paths.tiles[6].y-1)))
+            game_message.map.paths.tiles[6].x+1, game_message.map.paths[0].tiles[6].y-1)))
         actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(
             game_message.map.paths.tiles[15].x+1, game_message.map.paths.tiles[15].y-1)))
         actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(17, 20)))
