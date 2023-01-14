@@ -6,28 +6,30 @@ from typing import List
 
 
 class Bot:
-    def __init__(self):
 
+    def __init__(self):
+        self.isSpkike = True
         print("Initializing your super mega duper bot")
 
     def get_next_move(self, game_message: GameMessage):
         """
         Here is where the magic happens, for now the moves are not very good. I bet you can do better ;)
         """
+        actions = []
 
-        other_team_ids = [
-            team for team in game_message.teams if team != game_message.teamId]
-        actions = list()
+        if (self.isSpkike):
+            pass
 
-        actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(
-            random.randint(1, map.width), random.randint(1, map.height))))
+        # all possible positions to place a tower
+        possibilePositions = self._get_possible_positions(game_message)
 
-        # actions.append(SellAction(Position(0, 0)))
-        # actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(0, 0)))
+        # best position for each tower
+        bestPostionForEachTower = self.get_best_tower(
+            possibilePositions, game_message)
 
-        if other_team_ids:
-            actions.append(SendReinforcementsAction(
-                EnemyType.LVL1, other_team_ids[0]))
+        for towerType in bestPostionForEachTower.keys():
+            actions.append(BuildAction(
+                towerType, bestPostionForEachTower[towerType].position))
 
         return actions
     # SPIKE_SHOOTER = "SPIKE_SHOOTER"
@@ -70,7 +72,7 @@ class Bot:
             for y in range(GameMessage.map.height):
                 next_position = Position()
                 next_position.x, next_position.y = x, y
-                if not game_message.playAreas[game_message.teamId].get_tile_at(next_position).hasObstacle and not self._in_path(game_message, next_position):
+                if not game_message.playAreas[game_message.teamId].is_empty(next_position):
                     possible_positions.append(next_position)
         return possible_positions
 
