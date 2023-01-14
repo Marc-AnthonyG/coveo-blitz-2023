@@ -8,6 +8,8 @@ from typing import List
 class Bot:
 
     def __init__(self):
+        self.wasSpyke = False
+        self.wasSpyke2 = False
         print("Initializing your super mega duper bot")
 
     def get_next_move(self, game_message: GameMessage):
@@ -31,10 +33,14 @@ class Bot:
         if(bestPostionForEachTower):
             if(game_message.teamInfos[game_message.teamId].money > 600 and game_message.round > 4):
                 actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER]))
-            elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 15):
+            elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 12 and (self.wasSpyke2 == False or game_message.round > 10) ):
                 actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER]))
+                self.wasSpyke2 = True and self.wasSpyke
+                self.wasSpyke = True
             elif  (game_message.teamInfos[game_message.teamId].money > 200 and game_message.round < 10):
                 actions.append(BuildAction(TowerType.SPEAR_SHOOTER, bestPostionForEachTower[TowerType.SPEAR_SHOOTER]))
+                self.wasSpyke = False
+                self.wasSpyke2 = False
         elif (game_message.teamInfos[game_message.teamId].money > 1000):
             positionReplaceArcherToBomber = self.replace_archer_to_bomber(game_message)
             if(positionReplaceArcherToBomber):
