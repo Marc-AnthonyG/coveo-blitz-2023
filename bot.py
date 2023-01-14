@@ -4,11 +4,14 @@ from actions import *
 import random
 from typing import List
 
+ATTACK_PERCENT = 30
 
 class Bot:
 
     def __init__(self):
         print("Initializing your super mega duper bot")
+        self.attack_budget = 250
+        self.target = ""
 
     def get_next_move(self, game_message: GameMessage):
         """
@@ -16,10 +19,31 @@ class Bot:
         """
         actions = []
 
-        if(game_message.ticksUntilPayout != 59):
-            buy = self.look_to_buy(game_message)
-            if buy != False:
-                actions.append(buy)
+        # if(game_message.ticksUntilPayout != 59):
+        #     buy = self.decide_attack(game_message)
+        #     if buy != False:
+        #         actions.append(buy)
+        
+        if (self.target == ""):
+            self.get_new_target(game_message)
+        elif not game_message.teamInfos[self.target].isAlive:
+            self.get_new_target(game_message)
+
+
+        
+        if (game_message.ticksUntilPayout == 0):
+            # getting a payout
+            self.attack_budget += int((250 + game_message.teamInfos[game_message.teamId].payoutBonus) * (ATTACK_PERCENT/100))
+        
+        current_troop_type = self.get_current_troop(game_message)
+        if current_troop_type:
+            current_troop = game_message.shop.reinforcements[current_troop_type]
+
+            if current_troop.price <= self.attack_budget:
+                action = SendReinforcementsAction(current_troop_type, self.target)
+                actions.append(action)
+                self.attack_budget -= current_troop.price
+
                 
 
         # all possible positions to place a tower
@@ -48,6 +72,19 @@ class Bot:
         
 
         return actions
+    
+    def get_new_target(self, game_message):
+        for id in game_message.teamInfos.keys():
+            if (game_message.teamInfos[id].isAlive and id != game_message.teamId):
+                self.target = id
+                return
+
+    def get_current_troop(self, game_message):
+        t = EnemyType
+        troops = [t.LVL2, t.LVL3, t.LVL4, t.LVL5, t.LVL6, t.LVL7, t.LVL7, t.LVL10, t.LVL10, t.LVL11, t.LVL11]
+        if 1 > game_message.round or game_message.round > 10:
+            return False
+        return troops[game_message.round - 1]
 
     def trouver_tuiles_touchees(self, tiles_path: list, position: Position, type_tower: TowerType, game_message: GameMessage):
         liste_shoot_x = []
@@ -140,9 +177,11 @@ class Bot:
                     all_paths.append(tile)
         return all_paths
 
-    def look_to_buy(self, game_message: GameMessage):
-        # decide to either buy a tower or attack
+    def decide_attack(self, game_message: GameMessage):
+        # decide to either buy a tower or attack - returns true if it will attack
 
+        if len(game_message.playAreas[game_message.teamId].towers) > game_message.round * 2:
+            pass
 
 
 
