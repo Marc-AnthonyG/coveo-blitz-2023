@@ -1,5 +1,5 @@
 from game_message import *
-from game_message import GameMessage, TowerType, BuildAction, Position, SendReinforcementsAction, EnemyType, Tower, PlayArea
+from game_message import GameMessage, TowerType, Position, EnemyType, Tower, PlayArea
 from actions import *
 import random
 from typing import List
@@ -8,7 +8,6 @@ from typing import List
 class Bot:
 
     def __init__(self):
-        self.isSpkike = True
         print("Initializing your super mega duper bot")
 
     def get_next_move(self, game_message: GameMessage):
@@ -17,14 +16,14 @@ class Bot:
         """
         actions = []
 
-        if (self.isSpkike):
-            pass
+        self.look_to_buy(game_message)
+           
 
         # all possible positions to place a tower
         possibilePositions = self._get_possible_positions(game_message)
 
         # best position for each tower
-        bestPostionForEachTower = self.get_best_tower(
+        bestPostionForEachTower = self._get_best_tower(
             possibilePositions, game_message)
 
         for towerType in bestPostionForEachTower.keys():
@@ -41,18 +40,16 @@ class Bot:
         liste_shoot_y = []
         rayon_attaque = []
         tiles_rayon = []
-        liste_loops = [-2, -1, 0, 1, 2]
-        if type_tower == "SPEAR_SHOOTER" or type_tower == "BOMB_SHOOTER":
+        if type_tower == TowerType.SPEAR_SHOOTER or type_tower == TowerType.BOMB_SHOOTER:
             liste_loops = [-2, -1, 0, 1, 2]
 
-        elif type_tower == "BOMB_SHOOTER":
-            liste_loop = [-1, 0, 1]
+        elif type_tower == TowerType.SPIKE_SHOOTER:
+            liste_loops = [-1, 0, 1]
 
         for i in liste_loops:
             if (position.x + i >= 0):
                 liste_shoot_x.append(position.x + i)
-        for i in liste_loops:
-            if (position.x + i >= 0):
+            if (position.y + i >= 0):
                 liste_shoot_y.append(position.y + i)
         for position_x in liste_shoot_x:
             for position_y in liste_shoot_y:
@@ -68,11 +65,10 @@ class Bot:
     def _get_possible_positions(self, game_message: GameMessage):
         # creates a list containing all useable positions to place a tower
         possible_positions = []
-        for x in range(GameMessage.map.width):
-            for y in range(GameMessage.map.height):
-                next_position = Position()
-                next_position.x, next_position.y = x, y
-                if not game_message.playAreas[game_message.teamId].is_empty(next_position):
+        for x in range(game_message.map.width):
+            for y in range(game_message.map.height):
+                next_position = Position(x, y)
+                if game_message.playAreas[game_message.teamId].is_empty(next_position):
                     possible_positions.append(next_position)
         return possible_positions
 
@@ -83,11 +79,13 @@ class Bot:
                     return True
         return False
 
-    def _get_best_tower(self, possiblePosition: List[Position], game_message: GameMessage)):
+    def _get_best_tower(self, possiblePosition: List[Position], game_message: GameMessage):
 
         # Contient les 3 tours avec tous les rayson d'attaque de ces tours
         rayonAction={}
         bestPositionForEachTower={}
+
+        towerTypesEnum = [TowerType.BOMB_SHOOTER, TowerType.SPEAR_SHOOTER, TowerType.SPIKE_SHOOTER]
 
         allPaths=[]
         for path in game_message.map.paths:
@@ -97,18 +95,23 @@ class Bot:
 
 
         for position in possiblePosition:
-            for towerType in TowerType:
+            for towerType in towerTypesEnum:
                 rayonAction[towerType]=[]
                 rayonAction[towerType].append(
                     {'position': position, 'rayonAction': self.trouver_rayon_attaque(allPaths, position, towerType)})
-        for towerType in TowerType:
+        
+        for towerType in towerTypesEnum:
             bestPositionForEachTower[towerType]=evaluate_function(
-                rayonAction[towerType].rayonAction)
+                rayonAction[towerType]['rayonAction'])
 
         return bestPositionForEachTower
+    
+    def look_to_buy(self, game_message: GameMessage):
+        if len(game_message.playAreas[game_message.teamId].towers)*5>game_message.round:
+            return False
 
 
-def evaluate_function(rayonsDAttaque: list[Position]):
+def evaluate_function(rayonsDAttaque):
     maxTouchedTile = 0
     bestPosition = Position()
     for rayonAction in rayonsDAttaque:
