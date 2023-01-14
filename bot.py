@@ -1,5 +1,5 @@
 from game_message import *
-from game_message import GameMessage, TowerType, BuildAction, Position, SendReinforcementsAction, EnemyType, Tower, PlayArea
+from game_message import GameMessage, TowerType, Position, SendReinforcementsAction, EnemyType, Tower, PlayArea
 from actions import *
 import random
 
