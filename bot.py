@@ -143,8 +143,6 @@ class Bot:
     def look_to_buy(self, game_message: GameMessage):
         # decide to either buy a tower or attack
 
-        if len(game_message.playAreas[])
-
 
 
 
@@ -201,7 +199,7 @@ class Bot:
                 best_position = positions[i]
                 max_touched = all_touched_of_type[i]
 
-        for y in range(indexDepart): 
+        for y in range(indexDepart-1,-1 , -1): 
             if all_touched_of_type[y] > max_touched:
                 best_position = positions[y]
                 max_touched = all_touched_of_type[y]
