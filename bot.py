@@ -23,34 +23,39 @@ class Bot:
         #    if buy != False:
         #        actions.append(buy)
                 
+        if(len(game_message.playAreas[game_message.teamId].towers) > len(game_message.map.paths) and len(game_message.map.paths)>=3 ):
+            nombreTour = len(game_message.playAreas[game_message.teamId].towers)
+            positionChemin = game_message.map.paths[nombreTour][2]
+            actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(positionChemin.x+1, positionChemin.y+1)))
+        else:
+            # all possible positions to place a tower
+            possibilePositions = self._get_possible_positions(game_message)
 
-        # all possible positions to place a tower
-        possibilePositions = self._get_possible_positions(game_message)
-
-        # best position for each tower
-        bestPostionForEachTower = self._get_positions(game_message, possibilePositions)
-        
-        if(bestPostionForEachTower):
-            if(game_message.teamInfos[game_message.teamId].money > 600 and game_message.round > 4):
-                actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER]))
-            elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 12 and (self.wasSpyke2 == False or game_message.round > 10) ):
-                actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER]))
-                self.wasSpyke2 = True and self.wasSpyke
-                self.wasSpyke = True
-            elif  (game_message.teamInfos[game_message.teamId].money > 200 and game_message.round < 10):
-                actions.append(BuildAction(TowerType.SPEAR_SHOOTER, bestPostionForEachTower[TowerType.SPEAR_SHOOTER]))
-                self.wasSpyke = False
-                self.wasSpyke2 = False
-        elif (game_message.teamInfos[game_message.teamId].money > 1000):
-            positionReplaceArcherToBomber = self.replace_archer_to_bomber(game_message)
-            if(positionReplaceArcherToBomber):
-                actions.append(SellAction(positionReplaceArcherToBomber))
-                actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceArcherToBomber))
-            else:
-                positionReplaceSpikerToBomber = self.replace_spiker_to_bomber(game_message)
-                if(positionReplaceSpikerToBomber):
-                    actions.append(SellAction(positionReplaceSpikerToBomber))
-                    actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceSpikerToBomber))
+            # best position for each tower
+            bestPostionForEachTower = self._get_positions(game_message, possibilePositions)
+            
+            if(bestPostionForEachTower):
+                if(game_message.teamInfos[game_message.teamId].money > 600 and game_message.round > 4):
+                    actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER][0]))
+                    print(bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1])
+                elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 12 and ((self.wasSpyke2 == False or game_message.round > 10) or bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1]>=5) ):
+                    actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER][0]))
+                    self.wasSpyke2 = True and self.wasSpyke
+                    self.wasSpyke = True
+                elif  (game_message.teamInfos[game_message.teamId].money > 200 and game_message.round < 10):
+                    actions.append(BuildAction(TowerType.SPEAR_SHOOTER, bestPostionForEachTower[TowerType.SPEAR_SHOOTER][0]))
+                    self.wasSpyke = False
+                    self.wasSpyke2 = False
+            elif (game_message.teamInfos[game_message.teamId].money > 1000):
+                positionReplaceArcherToBomber = self.replace_archer_to_bomber(game_message)
+                if(positionReplaceArcherToBomber):
+                    actions.append(SellAction(positionReplaceArcherToBomber))
+                    actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceArcherToBomber))
+                else:
+                    positionReplaceSpikerToBomber = self.replace_spiker_to_bomber(game_message)
+                    if(positionReplaceSpikerToBomber):
+                        actions.append(SellAction(positionReplaceSpikerToBomber))
+                        actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceSpikerToBomber))
         
 
         return actions
@@ -134,8 +139,9 @@ class Bot:
         answer = {}
 
         for type in available_tower_types:
-            answer[type] = self._get_max_of(
-                listeTilesTouchees[type], listeTuilesPossibles[type], game_message)
+            position, max_touch = self._get_max_of(listeTilesTouchees[type], listeTuilesPossibles[type], game_message)
+
+            answer[type] = (position, max_touch)
         return answer
     
     def _get_all_path(self, game_message: GameMessage):
@@ -217,5 +223,4 @@ class Bot:
                 max_touched = all_touched_of_type[y]
 
 
-
-        return best_position
+        return best_position, max_touched
