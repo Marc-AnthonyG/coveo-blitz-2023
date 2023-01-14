@@ -25,20 +25,20 @@ class Bot:
         possibilePositions = self._get_possible_positions(game_message)
 
         # best position for each tower
-        bestPostionForEachTower = self._get_best_tower(
-            possibilePositions, game_message)
+        bestPostionForEachTower = self._get_positions(game_message,
+                                                      possibilePositions)
 
         for towerType in bestPostionForEachTower.keys():
             if bestPostionForEachTower[towerType] != False:
                 actions.append(BuildAction(
-                    towerType, bestPostionForEachTower[towerType]['position']))
+                    towerType, bestPostionForEachTower[towerType]))
 
                 index = self._index_of(
-                    possibilePositions, bestPostionForEachTower[towerType]['position'])
-                print(index)
+                    possibilePositions, bestPostionForEachTower[towerType])
+                # print(index)
                 del possibilePositions[index]
-                bestPostionForEachTower = self._get_best_tower(
-                    possibilePositions, game_message)
+                bestPostionForEachTower = self._get_positions(game_message,
+                                                              possibilePositions)
 
         if (game_message.teamInfos[game_message.teamId].money > 2000):
             positionReplaceArcherToBomber = self.replace_archer_to_bomber(
@@ -47,6 +47,8 @@ class Bot:
             actions.append(BuildAction(TowerType.BOMB_SHOOTER,
                            positionReplaceArcherToBomber))
 
+        # print(possibilePositions)
+        # print(bestPostionForEachTower)
         return actions
 
         if (game_message.teamInfos[game_message.teamId].money > 2000):
@@ -55,7 +57,7 @@ class Bot:
 
         return actions
 
-    def trouver_rayon_attaque(self, tiles_path: list, position: Position, type_tower: TowerType):
+    def trouver_tuiles_touchees(self, tiles_path: list, position: Position, type_tower: TowerType):
         liste_shoot_x = []
         liste_shoot_y = []
         rayon_attaque = []
@@ -100,38 +102,72 @@ class Bot:
                     return True
         return False
 
-    def _get_best_tower(self, possiblePosition: List[Position], game_message: GameMessage):
+    def _get_best_tower(self, possiblePositions: List[Position], game_message: GameMessage):
 
         # Contient les 3 tours avec tous les rayson d'attaque de ces tours
-        rayonAction = {}
+        listeTilesTouchees = {}
         bestPositionForEachTower = {}
 
         towerTypesEnum = [TowerType.BOMB_SHOOTER,
                           TowerType.SPEAR_SHOOTER, TowerType.SPIKE_SHOOTER]
 
         allPaths = []
+        # getting all path tiles and making sure they are not already in
         for path in game_message.map.paths:
             for tile in path.tiles:
                 if not self._is_in(allPaths, tile):
                     allPaths.append(tile)
 
-        for position in possiblePosition:
+        # calculating a list of every touched tile for every single possible tile
+        for positionLibre in possiblePositions:
             for towerType in towerTypesEnum:
-                rayonAction[towerType] = []
-                rayon = self.trouver_rayon_attaque(
-                    allPaths, position, towerType)
-                rayonAction[towerType].append(
-                    {'position': position, 'rayonAction': rayon})
+                listeTilesTouchees[towerType] = []
+                rayon = self.trouver_tuiles_touchees(
+                    allPaths, positionLibre, towerType)
+                listeTilesTouchees[towerType].append(
+                    {'position': positionLibre, 'rayonAction': rayon})
+        # for each tower type, finding out which tile is the best one to place it on
         for towerType in towerTypesEnum:
             positions = []
-            for element in rayonAction[towerType]:
-                if element['rayonAction'] == []:
+            for element in listeTilesTouchees[towerType]:
+                if element['rayonAction'] != []:
                     positions.append(element["rayonAction"])
 
-                bestPositionForEachTower[towerType] = evaluate_function(
-                    positions)
+                bestIndex = evaluate_function(positions)
 
         return bestPositionForEachTower
+
+    def _get_positions(self, game_message, possible_positions):
+        listeTilesTouchees = {}
+        listeTuilesPossibles = {}
+        towerTypesEnum = [TowerType.BOMB_SHOOTER,
+                          TowerType.SPEAR_SHOOTER, TowerType.SPIKE_SHOOTER]
+
+        # getting all path tiles and making sure they are not already in
+        all_paths = []
+        for path in game_message.map.paths:
+            for tile in path.tiles:
+                if not self._is_in(all_paths, tile):
+                    all_paths.append(tile)
+
+        for type in towerTypesEnum:
+            listeTilesTouchees[type] = []
+            listeTuilesPossibles[type] = []
+            for position in possible_positions:
+
+                tuiles_touchees = self.trouver_tuiles_touchees(
+                    all_paths, position, type)
+                if tuiles_touchees:
+                    listeTilesTouchees[type].append(
+                        {'position': position, 'rayonAction': tuiles_touchees})
+                    listeTuilesPossibles[type].append(position)
+
+        answer = {}
+        for type in towerTypesEnum:
+            answer[type] = self._get_max_of(
+                listeTilesTouchees[type], listeTuilesPossibles[type])
+
+        return answer
 
     def look_to_buy(self, game_message: GameMessage):
         if len(game_message.playAreas[game_message.teamId].towers)*5 > game_message.round:
@@ -166,15 +202,27 @@ class Bot:
                 return tower.position
         return None
 
+    def _get_max_of(self, all_touched_of_type, positions):
+        best_position = positions[0]
+        max_touched = 0
+
+        for i in range(len(positions)):
+            if len(all_touched_of_type[i]) > max_touched:
+                best_position = positions[i]
+                max_touched = len(all_touched_of_type[i])
+        return best_position
+
 
 def evaluate_function(rayonsDAttaque):
     maxTouchedTile = 0
 
+    # bestPosition = rayonsDAttaque[0]["position"]
     bestPosition = Position(0, 0)
 
-    for rayonAction in rayonsDAttaque:
-        if len(rayonAction) > maxTouchedTile:
-            maxTouchedTile = len(rayonAction)
-            bestPosition = rayonAction.position
+    for i in len(rayonsDAttaque):
 
-    return {'position': bestPosition, 'tileTouched': maxTouchedTile}
+        if len(rayonsDAttaque[i]) > maxTouchedTile:
+            maxTouchedTile = len(rayonsDAttaque[i])
+            bestPosition = i
+
+    return bestPosition
