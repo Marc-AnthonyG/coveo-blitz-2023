@@ -35,7 +35,7 @@ class Bot:
     def trouver_rayon_attaque(self, tiles_path: list, position: Position, type_tower: TowerType):
         liste_shoot_x = []
         liste_shoot_y = []
-        liste_position_attaque = []
+        rayon_attaque = []
         liste_loops = [-2, -1, 0, 1, 2]
         if type_tower == "SPEAR_SHOOTER":
             for i in liste_loops:
@@ -48,6 +48,8 @@ class Bot:
                 for position_y in liste_shoot_y:
                     liste_position_attaque.append(
                         Position(position_x, position_y))
+
+            for tile in rayon_attaque:
 
             liste_shoot_x.append(position.x - 2)
             coin_sup_droit_y = position.y + 2
@@ -78,8 +80,9 @@ class Bot:
 
         for position in possiblePosition:
             for towerType in TowerType:
-                rayonAction[towerType] = {
-                    'position': position, 'rayonAction': self.trouver_rayon_attaque(position, towerType)}
+                for
+
+                # 'position': position, 'rayonAction': self.trouver_rayon_attaque(position, towerType)}
 
 
 def evaluate_function(rayonsDAttaque: list[Position]):
