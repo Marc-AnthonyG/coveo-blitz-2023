@@ -21,25 +21,23 @@ class Bot:
             #actions.append(buy)
             pass
         
-        print("1")
         # all possible positions to place a tower
         possibilePositions = self._get_possible_positions(game_message)
-        print("2")
+
         # best position for each tower
-        bestPostionForEachTower = self._get_best_tower(
-            possibilePositions, game_message)
-        print("3")
+        bestPostionForEachTower = self._get_best_tower(possibilePositions, game_message)
+        
         for towerType in bestPostionForEachTower.keys():
             if bestPostionForEachTower[towerType] != False:
                 actions.append(BuildAction(
                     towerType, bestPostionForEachTower[towerType]['position']))
                 index = self._index_of(possibilePositions,bestPostionForEachTower[towerType]['position'])
-                print(index)
                 del possibilePositions[index]
-        print(4)
         
         if(game_message.teamInfos[game_message.teamId].money>2000):
-            replaceArcherToBomber = self._replace_archer_to_bomber(game_message)
+            positionReplaceArcherToBomber = self.replace_archer_to_bomber(game_message)
+            actions.append(SellAction(positionReplaceArcherToBomber))
+            actions.append(BuildAction(TowerType.BOMB_SHOOTER,positionReplaceArcherToBomber))
         
     
         return actions
@@ -114,16 +112,13 @@ class Bot:
                 rayon = self.trouver_rayon_attaque(allPaths, position, towerType)
                 rayonAction[towerType].append(
                     {'position': position, 'rayonAction': rayon})
-        print(rayonAction)
         for towerType in towerTypesEnum:
-            
             positions = []
             for element in rayonAction[towerType]:
                 if element['rayonAction'] == []:
                     positions.append(element["rayonAction"])
                         
                 bestPositionForEachTower[towerType]=evaluate_function(positions)
-                print(positions)
 
         return bestPositionForEachTower
     
@@ -132,10 +127,9 @@ class Bot:
             itemToSell = sorted(game_message.shop.reinforcements.keys(), key=lambda x:x.upper())
             
             for item in itemToSell:
-                print(item)
-                if game_message.teamInfos[game_message.teamId].money >= item.price*8:
+                if game_message.teamInfos[game_message.teamId].money >= game_message.shop.reinforcements[item].price*8:
                     other_team_ids = [team for team in game_message.teams if team != game_message.teamId]
-                    return SendReinforcementsAction(item.key, other_team_ids[0])
+                    return SendReinforcementsAction(item, other_team_ids[0])
         return None
     
     def _is_in(self, liste, position):
@@ -157,6 +151,9 @@ class Bot:
     
 
     def replace_archer_to_bomber(self, game_message):
+        for tower in game_message.playAreas[game_message.teamId].towers:
+            if tower.type == TowerType.SPEAR_SHOOTER:
+                return tower.position
         return None
 
     
