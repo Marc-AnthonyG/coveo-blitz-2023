@@ -28,7 +28,6 @@ class Bot:
         bestPostionForEachTower = self._get_positions(game_message,
                                                       possibilePositions)
 
-        print(possibilePositions)
         for towerType in bestPostionForEachTower.keys():
             if bestPostionForEachTower[towerType] != False:
                 actions.append(BuildAction(
@@ -36,7 +35,6 @@ class Bot:
 
                 index = self._index_of(
                     possibilePositions, bestPostionForEachTower[towerType])
-                # print(index)
                 del possibilePositions[index]
                 bestPostionForEachTower = self._get_positions(
                     game_message, possibilePositions)
@@ -47,14 +45,6 @@ class Bot:
             actions.append(SellAction(positionReplaceArcherToBomber))
             actions.append(BuildAction(TowerType.BOMB_SHOOTER,
                            positionReplaceArcherToBomber))
-
-        # print(possibilePositions)
-        # print(bestPostionForEachTower)
-        return actions
-
-        if (game_message.teamInfos[game_message.teamId].money > 2000):
-            replaceArcherToBomber = self._replace_archer_to_bomber(
-                game_message)
 
         return actions
 
