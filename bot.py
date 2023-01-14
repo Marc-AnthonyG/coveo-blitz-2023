@@ -20,7 +20,7 @@ class Bot:
             buy = self.look_to_buy(game_message)
             if buy != False:
                 actions.append(buy)
-                pass
+                
 
         # all possible positions to place a tower
         possibilePositions = self._get_possible_positions(game_message)
@@ -141,15 +141,24 @@ class Bot:
         return all_paths
 
     def look_to_buy(self, game_message: GameMessage):
-        if len(game_message.playAreas[game_message.teamId].towers) > game_message.round * 3:
-            itemToSell = sorted(game_message.shop.reinforcements.keys(), key=lambda x: x.upper())
+        # decide to either buy a tower or attack
 
-            for item in itemToSell:
-                if game_message.teamInfos[game_message.teamId].money >= game_message.shop.reinforcements[item].price*8:
-                    other_team_ids = [
-                        team for team in game_message.teams if team != game_message.teamId]
-                    return SendReinforcementsAction(item, other_team_ids[0])
-        return False
+        if len(game_message.playAreas[])
+
+
+
+
+
+        
+        # if len(game_message.playAreas[game_message.teamId].towers) > game_message.round * 2:
+        #     itemToSell = sorted(game_message.shop.reinforcements.keys(), key=lambda x: x.upper())
+
+        #     for item in itemToSell:
+        #         if game_message.teamInfos[game_message.teamId].money >= game_message.shop.reinforcements[item].price*8:
+        #             other_team_ids = [
+        #                 team for team in game_message.teams if team != game_message.teamId]
+        #             return SendReinforcementsAction(item, other_team_ids[0])
+        # return False
 
     def _is_in(self, liste, position):
         for pos in liste:
@@ -184,9 +193,17 @@ class Bot:
         best_position = positions[0]
         max_touched = 0
 
-        for i in range(len(positions)): 
+
+        indexDepart = int(len(positions) / 2)
+        
+        for i in range(indexDepart,len(positions)): 
             if all_touched_of_type[i] > max_touched:
                 best_position = positions[i]
                 max_touched = all_touched_of_type[i]
+
+        for y in range(indexDepart): 
+            if all_touched_of_type[y] > max_touched:
+                best_position = positions[y]
+                max_touched = all_touched_of_type[y]
 
         return best_position
