@@ -87,10 +87,12 @@ class Bot:
         return actions
     
     def get_new_target(self, game_message):
+        min_hp = 500
         for id in game_message.teamInfos.keys():
-            if (game_message.teamInfos[id].isAlive and id != game_message.teamId):
+            if (game_message.teamInfos[id].isAlive and id != game_message.teamId and game_message.teamInfos[id].hp < min_hp):
                 self.target = id
-                return
+                min_hp = game_message.teamInfos[id].hp
+                
 
     def get_current_troop(self, game_message):
         t = EnemyType
