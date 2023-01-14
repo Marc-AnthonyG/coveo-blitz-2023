@@ -1,5 +1,5 @@
 from game_message import *
-from game_message import GameMessage, TowerType, Position, SendReinforcementsAction, EnemyType, Tower, PlayArea
+from game_message import GameMessage, TowerType, Position, EnemyType, Tower, PlayArea
 from actions import *
 import random
 
@@ -20,7 +20,7 @@ class Bot:
         actions = list()
 
         actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(
-            random.randint(1, map.width), random.randint(1, map.height))))
+            random.randint(1, game_message.map.width), random.randint(1, game_message.map.height))))
 
         #actions.append(SellAction(Position(0, 0)))
         #actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(0, 0)))
