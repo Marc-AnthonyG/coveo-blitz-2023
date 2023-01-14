@@ -13,6 +13,7 @@ class Bot:
         print("Initializing your super mega duper bot")
         self.attack_budget = 250
         self.target = ""
+        self.current_path = 0
 
     def get_next_move(self, game_message: GameMessage):
         """
@@ -49,43 +50,38 @@ class Bot:
             
 
                 
-        if(len(game_message.playAreas[game_message.teamId].towers) < len(game_message.map.paths) and len(game_message.map.paths)>=3 ):
-            #try:
-                nombreTour = len(game_message.playAreas[game_message.teamId].towers)-1
-                positionChemin = game_message.map.paths[nombreTour].tiles[2]
-                actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(positionChemin.x+1, positionChemin.y+1)))
-            #except:
-            #    pass
-        else:
-            print("build")
-            # all possible positions to place a tower
-            possibilePositions = self._get_possible_positions(game_message)
 
-            # best position for each tower
-            bestPostionForEachTower = self._get_positions(game_message, possibilePositions)
-            
-            if(bestPostionForEachTower):
-                if(game_message.teamInfos[game_message.teamId].money > 600 and game_message.round > 4):
-                    actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER][0]))
-                    print(bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1])
-                elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 12 and ((self.wasSpyke2 == False or game_message.round > 10) or bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1]>=5) ):
-                    actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER][0]))
-                    self.wasSpyke2 = True and self.wasSpyke
-                    self.wasSpyke = True
-                elif  (game_message.teamInfos[game_message.teamId].money > 200 and game_message.round < 10):
-                    actions.append(BuildAction(TowerType.SPEAR_SHOOTER, bestPostionForEachTower[TowerType.SPEAR_SHOOTER][0]))
-                    self.wasSpyke = False
-                    self.wasSpyke2 = False
-            elif (game_message.teamInfos[game_message.teamId].money > 1000):
-                positionReplaceArcherToBomber = self.replace_archer_to_bomber(game_message)
-                if(positionReplaceArcherToBomber):
-                    actions.append(SellAction(positionReplaceArcherToBomber))
-                    actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceArcherToBomber))
-                else:
-                    positionReplaceSpikerToBomber = self.replace_spiker_to_bomber(game_message)
-                    if(positionReplaceSpikerToBomber):
-                        actions.append(SellAction(positionReplaceSpikerToBomber))
-                        actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceSpikerToBomber))
+        # all possible positions to place a tower
+        possibilePositions = self._get_possible_positions(game_message)
+
+        # best position for each tower
+        bestPostionForEachTower = self._get_positions(game_message, possibilePositions)
+        
+        if(bestPostionForEachTower):
+            if(game_message.teamInfos[game_message.teamId].money > 600 and game_message.round > 4):
+                actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER][0]))
+                self.current_path = (self.current_path + 1) % len(game_message.map.paths)
+                print(bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1])
+            elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 12 and ((self.wasSpyke2 == False or game_message.round > 10) or bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1]>=5) ):
+                actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER][0]))
+                self.current_path = (self.current_path + 1) % len(game_message.map.paths)
+                self.wasSpyke2 = True and self.wasSpyke
+                self.wasSpyke = True
+            elif  (game_message.teamInfos[game_message.teamId].money > 200 and game_message.round < 10):
+                actions.append(BuildAction(TowerType.SPEAR_SHOOTER, bestPostionForEachTower[TowerType.SPEAR_SHOOTER][0]))
+                self.current_path = (self.current_path + 1) % len(game_message.map.paths)
+                self.wasSpyke = False
+                self.wasSpyke2 = False
+        elif (game_message.teamInfos[game_message.teamId].money > 1000):
+            positionReplaceArcherToBomber = self.replace_archer_to_bomber(game_message)
+            if(positionReplaceArcherToBomber):
+                actions.append(SellAction(positionReplaceArcherToBomber))
+                actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceArcherToBomber))
+            else:
+                positionReplaceSpikerToBomber = self.replace_spiker_to_bomber(game_message)
+                if(positionReplaceSpikerToBomber):
+                    actions.append(SellAction(positionReplaceSpikerToBomber))
+                    actions.append(BuildAction(TowerType.BOMB_SHOOTER, positionReplaceSpikerToBomber))
         
 
         return actions
@@ -166,8 +162,9 @@ class Bot:
         return False
 
     def _get_positions(self, game_message, possible_positions):
-        listeTilesTouchees = {}
+        listeTilesToucheesTotal = {}
         listeTuilesPossibles = {}
+        listeTilesToucheesPath = {}
         towerTypesEnum = [TowerType.BOMB_SHOOTER,
                           TowerType.SPEAR_SHOOTER, TowerType.SPIKE_SHOOTER]
 
@@ -180,18 +177,23 @@ class Bot:
             if game_message.teamInfos[game_message.teamId].money < game_message.shop.towers[type].price:
                 continue
             available_tower_types.append(type)
-            listeTilesTouchees[type] = []
+            listeTilesToucheesTotal[type] = []
             listeTuilesPossibles[type] = []
+            listeTilesToucheesPath[type] = []
             for position in possible_positions:
-                tuiles_touchees = self.trouver_tuiles_touchees(all_paths, position, type, game_message)
-                if tuiles_touchees:
-                    listeTilesTouchees[type].append(tuiles_touchees)
+                tuiles_touchees_path = self.trouver_tuiles_touchees(game_message.map.paths[self.current_path].tiles, position, type, game_message)
+                tuiles_touchees_total = self.trouver_tuiles_touchees(all_paths, position, type, game_message)
+                if tuiles_touchees_total:
+                    listeTilesToucheesPath[type].append(tuiles_touchees_path)
+                    listeTilesToucheesTotal[type].append(tuiles_touchees_total)
                     listeTuilesPossibles[type].append(position)
 
         answer = {}
 
         for type in available_tower_types:
-            position, max_touch = self._get_max_of(listeTilesTouchees[type], listeTuilesPossibles[type], game_message)
+            if(len(listeTilesToucheesTotal[type]) == 0):
+                return (Position(0, 0), 0)
+            position, max_touch = self._get_max_of(listeTilesToucheesPath[type], listeTilesToucheesTotal[type], listeTuilesPossibles[type], game_message)
 
             answer[type] = (position, max_touch)
         return answer
@@ -235,9 +237,11 @@ class Bot:
     
 
 
-    def _get_max_of(self, all_touched_of_type, positions, game_message):
+    def _get_max_of(self, tuile_path_touche, tuile_total_touche, positions, game_message):
+    
         best_position = positions[0]
         max_touched = 0
+        max_total_touched = 0
 
 
         indexMilieu = int(len(positions) / 2)
@@ -247,19 +251,35 @@ class Bot:
 
         for i in range(len(positions)):
             if(positions[i].x >= millieuMapLargeur-2 and positions[i].x <= millieuMapLargeur+2 and positions[i].y >= millieuMapHauteur-2 and positions[i].y <= millieuMapHauteur+2):
-                if all_touched_of_type[i] > max_touched:
+                if tuile_path_touche[i] > max_touched:
+                    max_total_touched = tuile_total_touche[i]
                     best_position = positions[i]
-                    max_touched = all_touched_of_type[i]
+                    max_touched = tuile_path_touche[i]
+                elif( tuile_path_touche[i] == max_touched and tuile_total_touche[i] > max_total_touched):
+                    max_total_touched = tuile_total_touche[i]
+                    best_position = positions[i]
+                    max_touched = tuile_path_touche[i]
+
         
         for i in range(indexMilieu,len(positions)): 
-            if all_touched_of_type[i] > max_touched:
+            if tuile_path_touche[i] > max_touched:
+                max_total_touched = tuile_total_touche[i]
                 best_position = positions[i]
-                max_touched = all_touched_of_type[i]
+                max_touched = tuile_path_touche[i]
+            elif( tuile_path_touche[i] == max_touched and tuile_total_touche[i] > max_total_touched):
+                max_total_touched = tuile_total_touche[i]
+                best_position = positions[i]
+                max_touched = tuile_path_touche[i]
 
         for y in range(indexMilieu-1,-1 , -1): 
-            if all_touched_of_type[y] > max_touched:
+            if tuile_path_touche[y] > max_touched:
+                max_total_touched = tuile_total_touche[i]
                 best_position = positions[y]
-                max_touched = all_touched_of_type[y]
+                max_touched = tuile_path_touche[y]
+            elif( tuile_path_touche[i] == max_touched and tuile_total_touche[i] > max_total_touched):
+                max_total_touched = tuile_total_touche[i]
+                best_position = positions[i]
+                max_touched = tuile_path_touche[i]
 
 
         return best_position, max_touched
