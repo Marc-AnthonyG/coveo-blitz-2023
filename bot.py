@@ -34,8 +34,10 @@ class Bot:
     #BOMB_SHOOTER = "BOMB_SHOOTER"
     #SPEAR_SHOOTER = "SPEAR_SHOOTER"
 
-    def _trouver_rayon_attaque(self, tiles_path: list, position: Position, type_tower: TowerType):
+    def trouver_rayon_attaque(self, tiles_path: list, position: Position, type_tower: TowerType):
+        liste_shoot = []
         if type_tower == "SPEAR_SHOOTER":
+
             pass
         elif type_tower == "BOMB_SHOOTER":
             pass
@@ -54,7 +56,7 @@ class Bot:
 
 def _get_best_tower(self,):
 
-    rayonAction = []
+    rayonAction = {}
 
-    for tower in TowerType:
-        rayonAction.append(self._trouver_rayon_attaque(tower))
+    for towerType in TowerType:
+        rayonAction[towerType] = self.trouver_rayon_attaque(towerType)
