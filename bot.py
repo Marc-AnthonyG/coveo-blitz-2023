@@ -16,10 +16,10 @@ class Bot:
         """
         actions = []
 
-        if(game_message.ticksUntilPayout != 59):
-            buy = self.look_to_buy(game_message)
-            if buy != False:
-                actions.append(buy)
+        #if(game_message.ticksUntilPayout != 59):
+        #    buy = self.look_to_buy(game_message)
+        #    if buy != False:
+        #        actions.append(buy)
                 
 
         # all possible positions to place a tower
@@ -129,7 +129,7 @@ class Bot:
 
         for type in available_tower_types:
             answer[type] = self._get_max_of(
-                listeTilesTouchees[type], listeTuilesPossibles[type])
+                listeTilesTouchees[type], listeTuilesPossibles[type], game_message)
         return answer
     
     def _get_all_path(self, game_message: GameMessage):
@@ -142,10 +142,7 @@ class Bot:
 
     def look_to_buy(self, game_message: GameMessage):
         # decide to either buy a tower or attack
-
-
-
-
+        pass
 
         
         # if len(game_message.playAreas[game_message.teamId].towers) > game_message.round * 2:
@@ -187,21 +184,32 @@ class Bot:
     
 
 
-    def _get_max_of(self, all_touched_of_type, positions):
+    def _get_max_of(self, all_touched_of_type, positions, game_message):
         best_position = positions[0]
         max_touched = 0
 
 
-        indexDepart = int(len(positions) / 2)
+        indexMilieu = int(len(positions) / 2)
+        millieuMapHauteur  = int(game_message.map.width / 2)
+        millieuMapLargeur  = int(game_message.map.height / 2)
+
+
+        for i in range(len(positions)):
+            if(positions[i].x >= millieuMapLargeur-2 and positions[i].x <= millieuMapLargeur+2 and positions[i].y >= millieuMapHauteur-2 and positions[i].y <= millieuMapHauteur+2):
+                if all_touched_of_type[i] > max_touched:
+                    best_position = positions[i]
+                    max_touched = all_touched_of_type[i]
         
-        for i in range(indexDepart,len(positions)): 
+        for i in range(indexMilieu,len(positions)): 
             if all_touched_of_type[i] > max_touched:
                 best_position = positions[i]
                 max_touched = all_touched_of_type[i]
 
-        for y in range(indexDepart-1,-1 , -1): 
+        for y in range(indexMilieu-1,-1 , -1): 
             if all_touched_of_type[y] > max_touched:
                 best_position = positions[y]
                 max_touched = all_touched_of_type[y]
+
+
 
         return best_position
