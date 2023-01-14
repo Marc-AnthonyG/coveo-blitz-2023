@@ -1,5 +1,7 @@
 from game_message import *
+from game_message import GameMessage, TowerType, BuildAction, Position, SendReinforcementsAction, EnemyType, Tower, PlayArea
 from actions import *
+import random
 
 
 class Bot:
@@ -16,10 +18,7 @@ class Bot:
         actions = list()
 
         actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(
-            game_message.map.paths.tiles[6].x+1, game_message.map.paths[0].tiles[6].y-1)))
-        actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(
-            game_message.map.paths.tiles[15].x+1, game_message.map.paths.tiles[15].y-1)))
-        actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(17, 20)))
+            random.randint(1, map.width), random.randint(1, map.height))))
 
         #actions.append(SellAction(Position(0, 0)))
         #actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(0, 0)))
@@ -29,3 +28,15 @@ class Bot:
                 EnemyType.LVL1, other_team_ids[0]))
 
         return actions
+    #
+
+    def _trouver_rayon_attaque(self, tiles_path: list):
+        print("aloo")
+
+    def _get_possible_positions(self, game_message: GameMessage):
+        # creates a list containing all useable positions to place a tower
+        possible_positions = []
+        for x in range(GameMessage.map.width):
+            for y in range(GameMessage.map.height):
+                pass
+        return
