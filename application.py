@@ -36,11 +36,11 @@ async def game_loop(websocket: websockets.WebSocketServerProtocol, bot: Bot):
 
         game_message: GameMessage = cattrs.structure(
             json.loads(message), GameMessage)
-        print(
-            f"Playing tick {game_message.tick} in round {game_message.round}")
+       #print(f"Playing tick {game_message.tick} in round {game_message.round}")
 
         if game_message.lastTickErrors:
-            print(f'Errors during last tick : {game_message.lastTickErrors}')
+            #print(f'Errors during last tick : {game_message.lastTickErrors}')
+            pass
 
         payload = {
             "type": "COMMAND",
