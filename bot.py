@@ -15,8 +15,12 @@ class Bot:
         Here is where the magic happens, for now the moves are not very good. I bet you can do better ;)
         """
         actions = []
-
-        # actions.append(self.look_to_buy(game_message))           
+        
+        buy = self.look_to_buy(game_message)
+        if buy != False:
+            #actions.append(buy)
+            pass
+        
         print("1")
         # all possible positions to place a tower
         possibilePositions = self._get_possible_positions(game_message)
@@ -29,7 +33,13 @@ class Bot:
             if bestPostionForEachTower[towerType] != False:
                 actions.append(BuildAction(
                     towerType, bestPostionForEachTower[towerType]['position']))
-        print(4)      
+                index = self._index_of(possibilePositions,bestPostionForEachTower[towerType]['position'])
+                print(index)
+                del possibilePositions[index]
+        print(4)
+        
+        if(game_message.teamInfos[game_message.teamId].money>2000):
+            replaceArcherToBomber = self._replace_archer_to_bomber(game_message)
         
     
         return actions
@@ -122,7 +132,8 @@ class Bot:
             itemToSell = sorted(game_message.shop.reinforcements.keys(), key=lambda x:x.upper())
             
             for item in itemToSell:
-                if game_message.teamInfos[game_message.teamId].gold >= item.price*8:
+                print(item)
+                if game_message.teamInfos[game_message.teamId].money >= item.price*8:
                     other_team_ids = [team for team in game_message.teams if team != game_message.teamId]
                     return SendReinforcementsAction(item.key, other_team_ids[0])
         return None
@@ -133,15 +144,22 @@ class Bot:
                 return True
         return False
     
-    #Permet d'obtenir 
-    def _get_index_in(self, liste, position):
-        x = 0    
-        for pos in liste:
-            if pos.x == position.x and pos.y == position.y:
-                return x
-            x += 1
-        return -1
 
+
+    def _index_of(self, liste, position):
+        # returns index of position in list
+        index = 0
+        for element in liste:
+            if element.x == position.x and element.y == position.y:
+                return index
+            index += 1
+        return -1
+    
+
+    def replace_archer_to_bomber(self, game_message):
+        return None
+
+    
     
 
 
