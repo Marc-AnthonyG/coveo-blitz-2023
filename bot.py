@@ -13,6 +13,8 @@ class Bot:
         Here is where the magic happens, for now the moves are not very good. I bet you can do better ;)
         """
 
+        print(game_message.playAreas)
+
         other_team_ids = [
             team for team in game_message.teams if team != game_message.teamId]
         actions = list()
@@ -28,10 +30,18 @@ class Bot:
                 EnemyType.LVL1, other_team_ids[0]))
 
         return actions
-    #
+    #SPIKE_SHOOTER = "SPIKE_SHOOTER"
+    #BOMB_SHOOTER = "BOMB_SHOOTER"
+    #SPEAR_SHOOTER = "SPEAR_SHOOTER"
 
-    def _trouver_rayon_attaque(self, tiles_path: list):
-        print("aloo")
+    def _trouver_rayon_attaque(self, tiles_path: list, position: Position, type_tower: TowerType):
+        if type_tower == "SPEAR_SHOOTER":
+            pass
+        elif type_tower == "BOMB_SHOOTER":
+            pass
+        else:
+            pass
+        return
 
     def _get_possible_positions(self, game_message: GameMessage):
         # creates a list containing all useable positions to place a tower
@@ -40,3 +50,11 @@ class Bot:
             for y in range(GameMessage.map.height):
                 pass
         return
+
+
+def _get_best_tower(self,):
+
+    rayonAction = []
+
+    for tower in TowerType:
+        rayonAction.append(self._trouver_rayon_attaque(tower))
