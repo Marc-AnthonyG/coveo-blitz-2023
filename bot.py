@@ -9,7 +9,6 @@ class Bot:
 
     def __init__(self):
         self.wasSpyke = False
-        self.wasSpyke2 = False
         print("Initializing your super mega duper bot")
         self.attack_budget = 250
         self.target = ""
@@ -58,16 +57,15 @@ class Bot:
         bestPostionForEachTower = self._get_positions(game_message, possibilePositions)
         
         if(bestPostionForEachTower):
-            if(game_message.teamInfos[game_message.teamId].money > 600 and game_message.round > 4):
+            if(game_message.teamInfos[game_message.teamId].money > 600 and game_message.round > 14):
                 actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER][0]))
                 self.current_path = (self.current_path + 1) % len(game_message.map.paths)
                 print(bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1])
-            elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 12 and ((self.wasSpyke2 == False or game_message.round > 10) or bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1]>=5) ):
+            elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 14 and (self.wasSpyke == False or bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1]>=6) and bestPostionForEachTower[TowerType.SPIKE_SHOOTER][1]>=5 ):
                 actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER][0]))
                 self.current_path = (self.current_path + 1) % len(game_message.map.paths)
-                self.wasSpyke2 = True and self.wasSpyke
                 self.wasSpyke = True
-            elif  (game_message.teamInfos[game_message.teamId].money > 200 and game_message.round < 10):
+            elif  (game_message.teamInfos[game_message.teamId].money > 200 and game_message.round < 14):
                 actions.append(BuildAction(TowerType.SPEAR_SHOOTER, bestPostionForEachTower[TowerType.SPEAR_SHOOTER][0]))
                 self.current_path = (self.current_path + 1) % len(game_message.map.paths)
                 self.wasSpyke = False
