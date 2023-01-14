@@ -4,7 +4,6 @@ from actions import *
 import random
 from typing import List
 
-ATTACK_PERCENT = 30
 
 class Bot:
 
@@ -35,23 +34,30 @@ class Bot:
         
         if (game_message.ticksUntilPayout == 0):
             # getting a payout
-            self.attack_budget += int((250 + game_message.teamInfos[game_message.teamId].payoutBonus) * (ATTACK_PERCENT/100))
+            self.attack_budget += int((250 + game_message.teamInfos[game_message.teamId].payoutBonus) * (self.get_attack_percent(game_message)/100))
         
         current_troop_type = self.get_current_troop(game_message)
         if current_troop_type:
-            current_troop = game_message.shop.reinforcements[current_troop_type]
-
-            if current_troop.price <= self.attack_budget:
-                action = SendReinforcementsAction(current_troop_type, self.target)
-                actions.append(action)
-                self.attack_budget -= current_troop.price
+            try:
+                current_troop = game_message.shop.reinforcements[current_troop_type]
+                if current_troop.price <= self.attack_budget:
+                    action = SendReinforcementsAction(current_troop_type, self.target)
+                    actions.append(action)
+                    self.attack_budget -= current_troop.price
+            except KeyError:
+                pass
+            
 
                 
-        if(len(game_message.playAreas[game_message.teamId].towers) > len(game_message.map.paths) and len(game_message.map.paths)>=3 ):
-            nombreTour = len(game_message.playAreas[game_message.teamId].towers)
-            # positionChemin = game_message.map.paths[nombreTour][2]
-            #actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(positionChemin.x+1, positionChemin.y+1)))
+        if(len(game_message.playAreas[game_message.teamId].towers) < len(game_message.map.paths) and len(game_message.map.paths)>=3 ):
+            #try:
+                nombreTour = len(game_message.playAreas[game_message.teamId].towers)-1
+                positionChemin = game_message.map.paths[nombreTour].tiles[2]
+                actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(positionChemin.x+1, positionChemin.y+1)))
+            #except:
+            #    pass
         else:
+            print("build")
             # all possible positions to place a tower
             possibilePositions = self._get_possible_positions(game_message)
 
@@ -92,10 +98,19 @@ class Bot:
 
     def get_current_troop(self, game_message):
         t = EnemyType
-        troops = [t.LVL2, t.LVL3, t.LVL4, t.LVL5, t.LVL6, t.LVL7, t.LVL7, t.LVL10, t.LVL10, t.LVL11, t.LVL11]
-        if 1 > game_message.round or game_message.round > 10:
+        troops = [t.LVL2, t.LVL3, t.LVL4, t.LVL5, t.LVL6, t.LVL7, t.LVL7, t.LVL10, t.LVL10, t.LVL11, t.LVL11, t.LVL11, t.LVL11, t.LVL11, t.LVL11, t.LVL11, t.LVL11, t.LVL11, t.LVL11, t.LVL11]
+        if 1 > game_message.round or game_message.round > len(troops):
             return False
         return troops[game_message.round - 1]
+
+    def get_attack_percent(self, game_message):
+        round = game_message.round
+        if round < 12:
+            return 30
+        elif round < 20:
+            return 15
+        else:
+            return 30
 
     def trouver_tuiles_touchees(self, tiles_path: list, position: Position, type_tower: TowerType, game_message: GameMessage):
         liste_shoot_x = []
