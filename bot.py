@@ -29,7 +29,7 @@ class Bot:
         bestPostionForEachTower = self._get_positions(game_message, possibilePositions)
         
         if(bestPostionForEachTower):
-            if(game_message.teamInfos[game_message.teamId].money > 600):
+            if(game_message.teamInfos[game_message.teamId].money > 600 and game_message.round > 4):
                 actions.append(BuildAction(TowerType.BOMB_SHOOTER, bestPostionForEachTower[TowerType.BOMB_SHOOTER]))
             elif  (game_message.teamInfos[game_message.teamId].money > 280 and game_message.round < 15):
                 actions.append(BuildAction(TowerType.SPIKE_SHOOTER, bestPostionForEachTower[TowerType.SPIKE_SHOOTER]))
