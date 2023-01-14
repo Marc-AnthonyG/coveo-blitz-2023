@@ -49,8 +49,8 @@ class Bot:
                 
         if(len(game_message.playAreas[game_message.teamId].towers) > len(game_message.map.paths) and len(game_message.map.paths)>=3 ):
             nombreTour = len(game_message.playAreas[game_message.teamId].towers)
-            positionChemin = game_message.map.paths[nombreTour][2]
-            actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(positionChemin.x+1, positionChemin.y+1)))
+            # positionChemin = game_message.map.paths[nombreTour][2]
+            #actions.append(BuildAction(TowerType.SPEAR_SHOOTER, Position(positionChemin.x+1, positionChemin.y+1)))
         else:
             # all possible positions to place a tower
             possibilePositions = self._get_possible_positions(game_message)
