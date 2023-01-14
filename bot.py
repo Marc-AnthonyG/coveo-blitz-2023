@@ -20,42 +20,34 @@ class Bot:
         if buy != False:
             # actions.append(buy)
             pass
-<<<<<<< HEAD
 
-        print("1")
-=======
-        
->>>>>>> fecd9bda07be433f313e79996e0f5d8608520e03
         # all possible positions to place a tower
         possibilePositions = self._get_possible_positions(game_message)
 
         # best position for each tower
-        bestPostionForEachTower = self._get_best_tower(possibilePositions, game_message)
-        
+        bestPostionForEachTower = self._get_best_tower(
+            possibilePositions, game_message)
+
         for towerType in bestPostionForEachTower.keys():
             if bestPostionForEachTower[towerType] != False:
                 actions.append(BuildAction(
                     towerType, bestPostionForEachTower[towerType]['position']))
-<<<<<<< HEAD
+
                 index = self._index_of(
                     possibilePositions, bestPostionForEachTower[towerType]['position'])
                 print(index)
                 del possibilePositions[index]
                 bestPostionForEachTower = self._get_best_tower(
                     possibilePositions, game_message)
-        print(4)
-=======
-                index = self._index_of(possibilePositions,bestPostionForEachTower[towerType]['position'])
-                del possibilePositions[index]
-        
-        if(game_message.teamInfos[game_message.teamId].money>2000):
-            positionReplaceArcherToBomber = self.replace_archer_to_bomber(game_message)
+
+        if (game_message.teamInfos[game_message.teamId].money > 2000):
+            positionReplaceArcherToBomber = self.replace_archer_to_bomber(
+                game_message)
             actions.append(SellAction(positionReplaceArcherToBomber))
-            actions.append(BuildAction(TowerType.BOMB_SHOOTER,positionReplaceArcherToBomber))
-        
-    
+            actions.append(BuildAction(TowerType.BOMB_SHOOTER,
+                           positionReplaceArcherToBomber))
+
         return actions
->>>>>>> fecd9bda07be433f313e79996e0f5d8608520e03
 
         if (game_message.teamInfos[game_message.teamId].money > 2000):
             replaceArcherToBomber = self._replace_archer_to_bomber(
@@ -131,23 +123,13 @@ class Bot:
                 rayonAction[towerType].append(
                     {'position': position, 'rayonAction': rayon})
         for towerType in towerTypesEnum:
-<<<<<<< HEAD
-
-=======
->>>>>>> fecd9bda07be433f313e79996e0f5d8608520e03
             positions = []
             for element in rayonAction[towerType]:
                 if element['rayonAction'] == []:
                     positions.append(element["rayonAction"])
-<<<<<<< HEAD
 
                 bestPositionForEachTower[towerType] = evaluate_function(
                     positions)
-                print(positions)
-=======
-                        
-                bestPositionForEachTower[towerType]=evaluate_function(positions)
->>>>>>> fecd9bda07be433f313e79996e0f5d8608520e03
 
         return bestPositionForEachTower
 
@@ -157,17 +139,10 @@ class Bot:
                 game_message.shop.reinforcements.keys(), key=lambda x: x.upper())
 
             for item in itemToSell:
-<<<<<<< HEAD
-                print(item)
-                if game_message.teamInfos[game_message.teamId].money >= item.price*8:
+                if game_message.teamInfos[game_message.teamId].money >= game_message.shop.reinforcements[item].price*8:
                     other_team_ids = [
                         team for team in game_message.teams if team != game_message.teamId]
-                    return SendReinforcementsAction(item.key, other_team_ids[0])
-=======
-                if game_message.teamInfos[game_message.teamId].money >= game_message.shop.reinforcements[item].price*8:
-                    other_team_ids = [team for team in game_message.teams if team != game_message.teamId]
                     return SendReinforcementsAction(item, other_team_ids[0])
->>>>>>> fecd9bda07be433f313e79996e0f5d8608520e03
         return None
 
     def _is_in(self, liste, position):
